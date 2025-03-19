@@ -1,168 +1,184 @@
-import React,{useState,useEffect,useMemo} from 'react'
+import React,{useState} from 'react'
 import { useGlobalState } from '../globalState'
-import ClipLoader from "react-spinners/ClipLoader"
+import { format, subMonths, addMonths } from 'date-fns'
+import { ar } from 'date-fns/locale'
 import { IoIosArrowBack } from "react-icons/io"
 import { IoIosArrowForward } from "react-icons/io"
-import { Progress } from "antd"
+import { Progress,Flex } from "antd"
 
 const main = () => {
-  const { students,loading } = useGlobalState()
+  const { riders } = useGlobalState()
 
-  const [selectedMonth, setSelectedMonth] = useState(null)
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Baghdad" }));
+  const year = today.getFullYear();
 
-  const months = [
-    { id: 0, month: "يناير" },
-    { id: 1, month: "فبراير" },
-    { id: 2, month: "مارس" },
-    { id: 3, month: "أبريل" },
-    { id: 4, month: "مايو" },
-    { id: 5, month: "يونيو" },
-    { id: 6, month: "يوليو" },
-    { id: 7, month: "أغسطس" },
-    { id: 8, month: "سبتمبر" },
-    { id: 9, month: "أكتوبر" },
-    { id: 10, month: "نوفمبر" },
-    { id: 11, month: "ديسمبر" },
-  ];
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
 
-  // Set the current month on first render
-  useEffect(() => {
-    const currentMonthId = new Date().getMonth();
-    setSelectedMonth(months[currentMonthId]);
-  }, []);
+  const currentMonthKey = `${year}-${String(selectedMonth).padStart(2, "0")}`
 
-  // **Calculate statistics dynamically**
-  const totalSubscriptionRevenue = useMemo(
-    () =>
-      students.reduce((total, student) => total + (student.monthly_sub || 0), 0),
-    [students]
-  );
-
-  const companyRevenue = totalSubscriptionRevenue * 0.1; // 10% for company
-  const driversPay = totalSubscriptionRevenue * 0.9; // 90% for drivers
-
-  // **Calculate percentage of paid students in selected month**
-  const paidSubscriptionPercentage = useMemo(() => {
-    if (!selectedMonth || students.length === 0) return 0;
-
-    const totalStudents = students.length;
-    const paidStudents = students.filter((student) =>
-      student.bill?.some((bill) => bill.id === selectedMonth.id && bill.paid)
-    ).length;
-
-    return ((paidStudents / totalStudents) * 100).toFixed(1); // Rounded to 1 decimal place
-  }, [students, selectedMonth]);
-
-  // Navigate to the previous month
-  const goToPreviousMonth = () => {
-    const newMonthId = selectedMonth.id - 1;
-    if (newMonthId >= 0) setSelectedMonth(months[newMonthId]);
-  };
-
-  // Navigate to the next month
-  const goToNextMonth = () => {
-    const currentMonthId = new Date().getMonth();
-    const newMonthId = selectedMonth.id + 1;
-    if (newMonthId <= currentMonthId) setSelectedMonth(months[newMonthId]);
-  };
-
-  // Check if the "Previous Month" button should be disabled
-  const isPreviousMonthDisabled = selectedMonth?.id === 0;
-
-  // Check if the "Next Month" button should be disabled
-  const isNextMonthDisabled = () => {
-    const currentMonthId = new Date().getMonth();
-    return selectedMonth?.id >= currentMonthId;
-  };
-
-  // Loading data from DB ...
-  if(loading) {
-    return(
-      <div style={{height:'100%',width:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>
-        <ClipLoader
-          color={'#955BFE'}
-          loading={loading}
-          size={50}
-          aria-label="Loading Spinner"
-          data-testid="loader"
-        />
-      </div>
-    )
+  // Function to move to the previous month
+  const handlePrevMonth = () => {
+    const prevDate = subMonths(new Date(selectedYear, selectedMonth - 1), 1);
+    setSelectedYear(prevDate.getFullYear());
+    setSelectedMonth(prevDate.getMonth() + 1);
+  }
+  
+  // Function to move to the next month
+  const handleNextMonth = () => {
+    const nextDate = addMonths(new Date(selectedYear, selectedMonth - 1), 1);
+    setSelectedYear(nextDate.getFullYear());
+    setSelectedMonth(nextDate.getMonth() + 1);
   }
 
+  // Initialize Total Amounts
+  let totalCompanyRevenue = 0;
+  let totalDriverCommission = 0;
+  let paidSubscriptions = 0;
+  let totalRiders = riders.length;
+  let cashPayments = 0;
+  let bankPayments = 0;
+
+  // Loop through all riders
+  riders.forEach((rider) => {
+    const bill = rider.bill?.[currentMonthKey];
+
+    if (bill?.active) {
+      totalCompanyRevenue += bill.company_commission_amount || 0;
+      totalDriverCommission += bill.driver_commission_amount || 0;
+
+      // Count paid subscriptions
+      if (bill.paid) {
+        paidSubscriptions++;
+        if (bill.payment_mode === "cash") {
+          cashPayments++;
+        } else if (bill.payment_mode === "bank") {
+          bankPayments++;
+        }
+      }
+    }
+
+    // Check for complementary bill and add its amount to the driver's commission
+    const complementaryBills = rider?.complementary_bill?.[currentMonthKey] || [];
+    const totalComplementaryAmount = complementaryBills.reduce((sum, bill) => sum + (bill.amount || 0), 0);
+    totalDriverCommission += totalComplementaryAmount;
+  });
+
+  // Calculate Total Amount as Sum of Both Commissions
+  let totalAmount = totalCompanyRevenue + totalDriverCommission;
+
+  // Calculate Paid Subscription Percentage
+  let paidPercentage = totalRiders > 0 ? (paidSubscriptions / totalRiders) * 100 : 0;
+
+  // Calculate Payment Method Percentages
+  let cashPercentage = paidSubscriptions > 0 ? (cashPayments / paidSubscriptions) * 100 : 0;
+  let bankPercentage = paidSubscriptions > 0 ? (bankPayments / paidSubscriptions) * 100 : 0;
+ 
   return (
     <div className='main_section_stat'>
-
-        <div className='stats-section-inner-titles'>
-          <div className='students-section-inner-title'>
-            <div className='months-btn-container'>
-              <button 
-                onClick={goToPreviousMonth}
-                disabled={isPreviousMonthDisabled}
-                className="month-nav-btn"
-                style={{ opacity: isPreviousMonthDisabled ? 0.5 : 1 }}
-              >
-                <IoIosArrowBack size={22}/>             
-              </button>
-              <div className="current-month">
-                <p>{selectedMonth?.month}</p>
-              </div>       
-              <button 
-                onClick={goToNextMonth}
-                disabled={isNextMonthDisabled()}
-                className="month-nav-btn"
-                style={{ opacity: isNextMonthDisabled() ? 0.5 : 1 }}
-              >
-                <IoIosArrowForward size={22}/>
-              </button>
-            </div>
+      <div className='stats-section-inner-titles'>
+        <div className='students-section-inner-title'>
+          <div className='months-btn-container'>
+            <button 
+              onClick={handlePrevMonth}
+              disabled={selectedMonth === 1}
+              className="month-nav-btn"
+              style={{ opacity: selectedMonth === 1 ? 0.5 : 1 }}
+            >
+              <IoIosArrowBack size={22}/>             
+            </button>
+            <div className="current-month">
+              <p>{format(new Date(selectedYear, selectedMonth - 1), 'MMMM yyyy', { locale: ar })}</p>
+            </div>       
+            <button 
+              onClick={handleNextMonth}
+              disabled={selectedMonth >= new Date().getMonth() + 1} // Prevent going beyond current month
+              className="month-nav-btn"
+              style={{ opacity: selectedMonth >= new Date().getMonth() + 1 ? 0.5 : 1 }}
+            >
+              <IoIosArrowForward size={22}/>
+            </button>
           </div>
         </div>
+      </div>
 
-        <div className='stats-section-inner-first-box'>
-          <p>الإحصاءات الإجمالية</p>
-          <div className='stats-section-inner-first-box-sections'>
+      <div className='stats-section-inner-first-box'>
+        <p>الإحصاءات الإجمالية</p>
+        <div className='stats-section-inner-first-box-sections'>
+          <div>
+            <div className='stats-section-inner-first-box-sections-amount'>
+              <h4>{totalAmount.toLocaleString()}</h4>
+              <h4>دينار</h4>
+            </div>                      
+            <h5>العائد الجملي</h5>
+          </div>
 
-            <div>
-              <div className='stats-section-inner-first-box-sections-amount'>
-                <h4>{totalSubscriptionRevenue.toLocaleString()}</h4>
-                <h4>د.ع</h4>
-              </div>                      
-              <h5>العائد الجملي</h5>
+          <div>
+            <div className='stats-section-inner-first-box-sections-amount'>
+              <h4>{totalDriverCommission.toLocaleString()}</h4>
+              <h4>دينار</h4>
             </div>
+            <h5>اجور السواق</h5>            
+          </div>
 
-            <div>
-              <div className='stats-section-inner-first-box-sections-amount'>
-                <h4>{companyRevenue.toLocaleString()}</h4>
-                <h4>د.ع</h4>
-              </div>            
-              <h5>عائدات الشركة</h5>            
-            </div>
+          <div>
+            <div className='stats-section-inner-first-box-sections-amount'>
+              <h4>{totalCompanyRevenue.toLocaleString()}</h4>
+              <h4>دينار</h4>
+            </div>            
+            <h5>عائدات الشركة</h5>            
+          </div>
 
-            <div>
-              <div className='stats-section-inner-first-box-sections-amount'>
-                <h4>{driversPay.toLocaleString()}</h4>
-                <h4>د.ع</h4>
-              </div>
-              <h5>اجور السواق</h5>            
-            </div>
+        </div>       
+      </div>
 
-          </div>       
+      <div className='stats-section-inner-second-box' style={{flexDirection:'row-reverse'}}>        
+        <div className='stats-circular'>
+          <Progress
+            type="circle"
+            percent={paidPercentage.toFixed(0)}
+            format={(percent) => `${percent}%`}
+            strokeColor="#955BFE"
+          />
+          <p style={{marginTop:'10px'}}>نسبة الاشتراكات المدفوعة</p>
         </div>
 
-        <div className='stats-section-inner-second-box'>
-          <p>نسبة الاشتراكات المدفوعة</p>
-          <div style={{ display: "flex", justifyContent: "center" }}>
+        <div className='stats-inline-bar'>
+          <Flex gap="small" vertical>
+
+          {/* Cash Payment Bar */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+            <div style={{ width:'100px',textAlign:'center'}}>
+              <h5 style={{ color: "#955BFE" }}>نقد</h5>
+            </div>          
             <Progress
-              type="circle"
-              percent={paidSubscriptionPercentage}
-              format={(percent) => `${percent}%`}
+              percent={cashPercentage}
+              size={[150, 20]}
               strokeColor="#955BFE"
+              format={() => `${bankPercentage.toFixed(0)}%`}
+              showInfo={false} 
             />
+            <h5 style={{ color: "#955BFE",width:'50px',textAlign:'center' }}>{cashPercentage.toFixed(0)}%</h5>
           </div>
+
+          {/* Bank Payment Bar */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+            <div style={{ width:'100px',textAlign:'center'}}>
+              <h5 style={{color: "#32CD32"}}>تحويل بنكي</h5>
+            </div>          
+            <Progress
+              percent={bankPercentage}
+              size={[150, 20]}
+              strokeColor="#32CD32"
+              format={() => `${cashPercentage.toFixed(0)}%`} 
+              showInfo={false} 
+            />
+            <h5 style={{ color: "#32CD32",width:'50px',textAlign:'center' }}>{bankPercentage.toFixed(0)}%</h5>
+          </div>
+          </Flex>
+          <p style={{ marginTop: "10px" }}>طريقة الدفع</p>
         </div>
-
-
+      </div>
     </div>
   )
 }

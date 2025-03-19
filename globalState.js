@@ -6,7 +6,9 @@ import { DB } from './firebaseConfig';
 const GlobalStateContext = createContext();
 
 const initialState = {
+  riders:[],
   students: [],
+  employees: [],
   drivers: [],
   schools: [],
   loading: true,
@@ -37,11 +39,15 @@ export const GlobalStateProvider = ({ children }) => {
 
   useEffect(() => {
     
-    const unsubscribeStudents = onSnapshot(collection(DB, 'students'), (snapshot) => {
-      const students = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const unsubscribeRiders = onSnapshot(collection(DB, 'riders'), (snapshot) => {
+      const riders = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      const students = riders.filter((rider) => rider.rider_type === 'student');
+      const employees = riders.filter((rider) => rider.rider_type === 'employee');
+
       dispatch({
         type: 'FETCH_SUCCESS',
-        payload: { students },
+        payload: { students,employees,riders },
       });
     });
 
@@ -63,7 +69,7 @@ export const GlobalStateProvider = ({ children }) => {
 
     // Cleanup listeners on unmount
     return () => {
-      unsubscribeStudents();
+      unsubscribeRiders();
       unsubscribeDrivers();
       unsubscribeSchools();
     };

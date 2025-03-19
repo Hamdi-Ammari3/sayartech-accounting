@@ -4,7 +4,7 @@ import {useRouter} from 'next/navigation'
 import ClipLoader from "react-spinners/ClipLoader"
 import Navbar from '../components/navbar'
 import Main from '../components/main'
-import Students from '../components/students'
+import Riders from '../components/riders'
 import Drivers from '../components/drivers'
 
 const Dashboard = () => {
@@ -45,8 +45,8 @@ const Dashboard = () => {
     switch (activeSection) {
       case 'الرئيسية':
         return <Main/>
-      case 'الطلاب' :
-        return <Students/>
+      case 'الركاب' :
+        return <Riders/>
       case 'السواق':
         return <Drivers/>
       default:
@@ -69,10 +69,10 @@ const Dashboard = () => {
             </div>
 
             <div
-              onClick={() => handleSectionSelect('الطلاب')}
-              className={activeSection === 'الطلاب' ? 'active':''}
+              onClick={() => handleSectionSelect('الركاب')}
+              className={activeSection === 'الركاب' ? 'active':''}
             >
-              <h4 >الطلاب</h4>
+              <h4 >الركاب</h4>
             </div>
 
             <div

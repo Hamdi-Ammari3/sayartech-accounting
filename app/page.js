@@ -6,6 +6,7 @@ import Navbar from '../components/navbar'
 import Main from '../components/main'
 import Riders from '../components/riders'
 import Drivers from '../components/drivers'
+import Schools from '../components/schools'
 
 const Dashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -49,6 +50,8 @@ const Dashboard = () => {
         return <Riders/>
       case 'السواق':
         return <Drivers/>
+      case 'المدارس':
+        return <Schools/>
       default:
         return <Main/>
     }
@@ -80,6 +83,13 @@ const Dashboard = () => {
               className={activeSection === 'السواق' ? 'active':''}
             >
               <h4 >السواق</h4>
+            </div>
+
+            <div
+              onClick={() => handleSectionSelect('المدارس')}
+              className={activeSection === 'المدارس' ? 'active':''}
+            >
+              <h4 >المدارس</h4>
             </div>
 
           </div>

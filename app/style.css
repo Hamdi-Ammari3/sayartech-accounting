@@ -233,6 +233,35 @@
     justify-content: space-between;
     align-items: center;
 }
+.driver-rating-box{
+    width: 150px;
+    height: 27px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #f1f1f1;
+    border-radius: 10px;
+}
+.driver-rating-box > button {
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+.driver-rating-box-icon{
+    color: #747474;
+}
+.driver-rating-box-icon-active{
+    color: #955BFE;
+}
+.driver-rating-box > h5 {
+    color: #747474;
+    font-size: 12px;
+    font-weight: 700;
+}
 .ant-flex{
     height: 20vh;
     justify-content: center !important;
@@ -268,7 +297,7 @@
 .stats-section-inner-first-box-sections-amount > h4 {
     margin-inline: 2px;
 }
-.excel-btn{
+.excel-btn,.pdf-btn{
     width: 30px;
     height: 5vh;
     border: none;
@@ -278,13 +307,15 @@
     background-color: transparent;
     border-radius: 100%;
     cursor: pointer;
+}
+.excel-btn{
     position: absolute;
     top: 0;
     left: 120px;
 }
-.excel-btn:hover{
+.excel-btn:hover,.pdf-btn:hover{
     background-color: #e0e0e0;
-  }
+}
 .ant-flex{
     display: flex;
     align-items: center;
@@ -697,6 +728,14 @@
     justify-content: center;
     align-items: center;
 }
+.school-firstBox-amounts{
+    height: 35vh;
+    width: 100%;
+    display: flex;
+    flex-direction:column;
+    justify-content: space-between;
+    align-items: center;
+}
 .total-commission-box{
     width: 70%;
     height: 40px;
@@ -722,6 +761,13 @@
 .paid-paycheck{
     display: flex;
     flex-direction: row-reverse;
+    align-items: center;
+}
+.save-to-pdf-btn{
+    width: 60px;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
     align-items: center;
 }
 .item-detailed-data-main-second-box{

@@ -20,11 +20,11 @@ import excel from '../images/excel.png'
 const riders = () => {
   const { riders } = useGlobalState()
 
-  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Baghdad" }));
-  const year = today.getFullYear();
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Baghdad" }))
+  const year = today.getFullYear()
 
   const [selectedRider,setSelectedRider] = useState(null)
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [nameFilter, setNameFilter] = useState("")
   const [monthlyAmountFilter, setMonthlyAmountFilter] = useState("")
@@ -39,8 +39,8 @@ const riders = () => {
   const [paymentMode,setPaymentMode] = useState('')
   const [isEditingPaymentStatus,setIsEditingPaymentStatus] = useState(false)
   
-  const currentMonthKey = `${year}-${String(selectedMonth).padStart(2, "0")}`;
-  const selectedRiderMonthKey = `${year}-${String(riderDeatilSelectedMonth).padStart(2, "0")}`;
+  const currentMonthKey = `${year}-${String(selectedMonth).padStart(2, "0")}`
+  const selectedRiderMonthKey = `${year}-${String(riderDeatilSelectedMonth).padStart(2, "0")}`
 
   // Function to move to the previous month
   const handlePrevMonth = () => {
@@ -204,16 +204,19 @@ const riders = () => {
           const remainingDays = totalDays - startDay + 1;
 
           // Calculate new prorated amount for months with start_date
-          const newDailyRate = driverCommission / totalDays;
+          const newDailyRate = driverCommission / 30;
           const newProratedAmount = Math.round(newDailyRate * remainingDays);
           updatedBill[monthKey].driver_commission_amount = newProratedAmount;
+          updatedBill[monthKey].company_commission_amount = companyCommission;
 
         } else if (monthKey < currentMonthKey) {
           // For months before the current month, update to the full new amount
           updatedBill[monthKey].driver_commission_amount = driverCommission;
+          updatedBill[monthKey].company_commission_amount = companyCommission;
         } else {
           // For the current month and future months, apply new rates
           updatedBill[monthKey].driver_commission_amount = driverCommission;
+          updatedBill[monthKey].company_commission_amount = companyCommission;
         }
       });
 

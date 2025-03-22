@@ -3,11 +3,12 @@ import Image from 'next/image'
 import { useGlobalState } from '../globalState'
 import { doc,getDoc,writeBatch} from "firebase/firestore"
 import { DB } from "../firebaseConfig"
-import { Modal } from "antd"
+import { Modal,Watermark  } from "antd"
 import { format, subMonths, addMonths } from 'date-fns'
 import { ar } from 'date-fns/locale'
 import ClipLoader from "react-spinners/ClipLoader"
 import * as XLSX from "xlsx"
+import jsPDF from "jspdf"
 import { IoIosArrowBack } from "react-icons/io"
 import { IoIosArrowForward } from "react-icons/io"
 import { BsArrowLeftShort } from "react-icons/bs"
@@ -15,6 +16,8 @@ import { FiPlusSquare } from "react-icons/fi"
 import { FcOk } from "react-icons/fc"
 import imageNotFound from '../images/NoImage.jpg'
 import excel from '../images/excel.png'
+import pdf from '../images/pdf.png'
+import companyLogo from '../images/icon.png'
 
 const drivers = () => {
   const { drivers,riders } = useGlobalState()
@@ -23,7 +26,7 @@ const drivers = () => {
   const year = today.getFullYear();
   
   const [selectedDriver,setSelectedDriver] = useState(null)
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [nameFilter, setNameFilter] = useState('')
   const [showCompWageModal, setShowCompWageModal] = useState(false)
@@ -188,7 +191,7 @@ const drivers = () => {
     }
   };
 
-  // Export riders list as excel file
+  // Export Drivers list as excel file
   const exportToExcel = () => {
     // Define the file name based on selected month and year
     const fileName = `Sayartech_Drivers_${selectedYear}-${String(selectedMonth).padStart(2, "0")}.xlsx`;
@@ -229,6 +232,47 @@ const drivers = () => {
     
     // Save File
     XLSX.writeFile(wb, fileName);
+  };
+
+  // Export driver receipt as PDF file
+  const exportReceiptToPDF = (driverName,driverFamilyName,month,totalAmount) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+  
+    // Add Company Name
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("شركة سيارتك", pageWidth / 2, 20, { align: "center" });
+
+    // Add Receipt Title
+    doc.setFontSize(14);
+    doc.text("وصل استلام", pageWidth / 2, 30, { align: "center" });
+
+    // Add Month
+    doc.setFontSize(12);
+    doc.text(`أجرة شهر ${month}`, pageWidth / 2, 40, { align: "center" });
+
+    // Add Main Content
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    const content = [
+        `اسم المستلم: ${driverName} ${driverFamilyName}`,
+        `المبلغ: ${totalAmount.toLocaleString()} دينار`,
+        "التوقيع: ______________________",
+    ];
+
+    content.forEach((line, index) => {
+        doc.text(line, 20, 60 + index * 10);
+    });
+
+    // Add Watermark
+    const logoWidth = 50;
+    const logoHeight = 50;
+    doc.addImage(companyLogo.src, "PNG", (pageWidth - logoWidth) / 2, 100, logoWidth, logoHeight, "", "FAST");
+
+    // Save PDF
+    doc.save(`Receipt_${driverName} ${driverFamilyName}_${month}.pdf`);
   };
   
   return (
@@ -489,3 +533,21 @@ const drivers = () => {
 }
 
 export default drivers
+
+
+/*
+  <div className='save-to-pdf-btn'>
+    <FcOk size={18}/>
+    <button 
+      className='pdf-btn' 
+      onClick={() => exportReceiptToPDF(
+        selectedDriver.driver_full_name, 
+        selectedDriver.driver_family_name,
+        format(new Date(selectedYear, selectedMonth - 1), 'MMMM yyyy', { locale: ar }),
+        finalTotalAmount
+      )}
+    >
+      <Image src={pdf} width={20} height={20} alt='pdf'/>
+    </button>
+  </div> 
+*/

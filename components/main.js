@@ -1,5 +1,6 @@
 import React,{useState} from 'react'
 import { useGlobalState } from '../globalState'
+import ClipLoader from "react-spinners/ClipLoader"
 import { format, subMonths, addMonths } from 'date-fns'
 import { ar } from 'date-fns/locale'
 import { IoIosArrowBack } from "react-icons/io"
@@ -7,7 +8,7 @@ import { IoIosArrowForward } from "react-icons/io"
 import { Progress,Flex } from "antd"
 
 const main = () => {
-  const { riders } = useGlobalState()
+  const { riders,loading } = useGlobalState()
 
   const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Baghdad" }));
   const year = today.getFullYear();
@@ -104,80 +105,105 @@ const main = () => {
 
       <div className='stats-section-inner-first-box'>
         <p>الإحصاءات الإجمالية</p>
-        <div className='stats-section-inner-first-box-sections'>
-          <div>
-            <div className='stats-section-inner-first-box-sections-amount'>
-              <h4>{totalAmount.toLocaleString()}</h4>
-              <h4>دينار</h4>
-            </div>                      
-            <h5>العائد الجملي</h5>
+        {loading ? (
+          <div className='stats-section-inner-first-box-sections'>
+            <ClipLoader
+              color={'#955BFE'}
+              loading={loading}
+              size={15}
+              aria-label="Loading Spinner"
+              data-testid="loader"
+            />
           </div>
-
-          <div>
-            <div className='stats-section-inner-first-box-sections-amount'>
-              <h4>{totalDriverCommission.toLocaleString()}</h4>
-              <h4>دينار</h4>
+        ) : (
+          <div className='stats-section-inner-first-box-sections'>
+            <div>
+              <div className='stats-section-inner-first-box-sections-amount'>
+                <h4>{totalAmount.toLocaleString()}</h4>
+                <h4>دينار</h4>
+              </div>                      
+              <h5>العائد الجملي</h5>
             </div>
-            <h5>اجور السواق</h5>            
-          </div>
 
-          <div>
-            <div className='stats-section-inner-first-box-sections-amount'>
-              <h4>{totalCompanyRevenue.toLocaleString()}</h4>
-              <h4>دينار</h4>
-            </div>            
-            <h5>عائدات الشركة</h5>            
-          </div>
+            <div>
+              <div className='stats-section-inner-first-box-sections-amount'>
+                <h4>{totalDriverCommission.toLocaleString()}</h4>
+                <h4>دينار</h4>
+              </div>
+              <h5>اجور السواق</h5>            
+            </div>
 
-        </div>       
+            <div>
+              <div className='stats-section-inner-first-box-sections-amount'>
+                <h4>{totalCompanyRevenue.toLocaleString()}</h4>
+                <h4>دينار</h4>
+              </div>            
+              <h5>عائدات الشركة</h5>            
+            </div>
+          </div>   
+        )}    
       </div>
 
-      <div className='stats-section-inner-second-box' style={{flexDirection:'row-reverse'}}>        
-        <div className='stats-circular'>
-          <Progress
-            type="circle"
-            percent={paidPercentage.toFixed(0)}
-            format={(percent) => `${percent}%`}
-            strokeColor="#955BFE"
-          />
-          <p style={{marginTop:'10px'}}>نسبة الاشتراكات المدفوعة</p>
-        </div>
-
-        <div className='stats-inline-bar'>
-          <Flex gap="small" vertical>
-
-          {/* Cash Payment Bar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-            <div style={{ width:'100px',textAlign:'center'}}>
-              <h5 style={{ color: "#955BFE" }}>نقد</h5>
-            </div>          
+      <div className='stats-section-inner-second-box' style={{flexDirection:'row-reverse'}}>  
+        {loading ? (
+          <div>
+            <ClipLoader
+              color={'#955BFE'}
+              loading={loading}
+              size={15}
+              aria-label="Loading Spinner"
+              data-testid="loader"
+            />
+          </div>  
+        ) : (      
+        <>
+          <div className='stats-circular'>
             <Progress
-              percent={cashPercentage}
-              size={[150, 20]}
+              type="circle"
+              percent={paidPercentage.toFixed(0)}
+              format={(percent) => `${percent}%`}
               strokeColor="#955BFE"
-              format={() => `${bankPercentage.toFixed(0)}%`}
-              showInfo={false} 
             />
-            <h5 style={{ color: "#955BFE",width:'50px',textAlign:'center' }}>{cashPercentage.toFixed(0)}%</h5>
+            <p style={{marginTop:'10px'}}>نسبة الاشتراكات المدفوعة</p>
           </div>
 
-          {/* Bank Payment Bar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-            <div style={{ width:'100px',textAlign:'center'}}>
-              <h5 style={{color: "#32CD32"}}>تحويل بنكي</h5>
-            </div>          
-            <Progress
-              percent={bankPercentage}
-              size={[150, 20]}
-              strokeColor="#32CD32"
-              format={() => `${cashPercentage.toFixed(0)}%`} 
-              showInfo={false} 
-            />
-            <h5 style={{ color: "#32CD32",width:'50px',textAlign:'center' }}>{bankPercentage.toFixed(0)}%</h5>
+          <div className='stats-inline-bar'>
+            <Flex gap="small" vertical>
+
+              {/* Cash Payment Bar */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                <div style={{ width:'100px',textAlign:'center'}}>
+                  <h5 style={{ color: "#955BFE" }}>نقد</h5>
+                </div>          
+                <Progress
+                  percent={cashPercentage}
+                  size={[150, 20]}
+                  strokeColor="#955BFE"
+                  format={() => `${bankPercentage.toFixed(0)}%`}
+                  showInfo={false} 
+                />
+                <h5 style={{ color: "#955BFE",width:'50px',textAlign:'center' }}>{cashPercentage.toFixed(0)}%</h5>
+              </div>
+
+              {/* Bank Payment Bar */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                <div style={{ width:'100px',textAlign:'center'}}>
+                  <h5 style={{color: "#32CD32"}}>تحويل بنكي</h5>
+                </div>          
+                <Progress
+                  percent={bankPercentage}
+                  size={[150, 20]}
+                  strokeColor="#32CD32"
+                  format={() => `${cashPercentage.toFixed(0)}%`} 
+                  showInfo={false} 
+                />
+                <h5 style={{ color: "#32CD32",width:'50px',textAlign:'center' }}>{bankPercentage.toFixed(0)}%</h5>
+              </div>
+            </Flex>
+            <p style={{ marginTop: "10px" }}>طريقة الدفع</p>
           </div>
-          </Flex>
-          <p style={{ marginTop: "10px" }}>طريقة الدفع</p>
-        </div>
+        </>
+        )}
       </div>
     </div>
   )

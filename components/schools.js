@@ -167,7 +167,6 @@ const schools = () => {
         // Now, check complementary wages from drivers
         drivers.forEach(driver => {
             const complementaryWages = driver.complementaryWages?.[currentMonthKey] || [];
-
             complementaryWages.forEach(comp => {
                 const student = riders.find(r => r.id === comp.rider_id);
                 if (!student || student.destination !== school?.name) return;
@@ -304,6 +303,7 @@ const schools = () => {
                     </div>
 
                     <div className="item-detailed-data-main-second-box">
+                        <div className="item-detailed-data-main-second-insider-box">
                         {schoolDrivers.length ? (
                             schoolDrivers.map((driver, index) => (
                                 <div key={index} className="assinged-item-box-main">
@@ -350,6 +350,7 @@ const schools = () => {
                         ) : (
                             <h5 className="no-students">لا يوجد سائقين مرتبطين بهذه المدرسة</h5>
                         )}
+                        </div>
                     </div>
                 </div>
             </div>

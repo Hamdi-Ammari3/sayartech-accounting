@@ -163,7 +163,13 @@ const riders = () => {
 
   // Edit student monthly fee
   const editStudentMonthlyFee = async () => {
-    if (totalSubAmount <= 0 || companyCommission < 0 || driverCommission < 0) {
+
+    // Ensure values are valid numbers
+    const totalAmount = parseFloat(totalSubAmount) || 0;
+    const companyCom = parseFloat(companyCommission) || 0;
+    const driverCom = parseFloat(driverCommission) || 0;
+
+    if (totalAmount <= 0 || companyCom < 0 || driverCom < 0) {
       alert("الرجاء ادخال مبلغ مالي صحيح");
       return;
     }
@@ -179,9 +185,8 @@ const riders = () => {
       }
 
       const batch = writeBatch(DB)
-
       const riderData = riderDoc.data()
-      const updatedBill = ensureAllMonthsExist(riderData.bill || {}, driverCommission,companyCommission)
+      const updatedBill = ensureAllMonthsExist(riderData.bill || {}, driverCom,companyCom)
 
       // Get current Iraqi date
       const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Baghdad" }));
@@ -207,24 +212,24 @@ const riders = () => {
           const newDailyRate = driverCommission / 30;
           const newProratedAmount = Math.round(newDailyRate * remainingDays);
           updatedBill[monthKey].driver_commission_amount = newProratedAmount;
-          updatedBill[monthKey].company_commission_amount = companyCommission;
+          updatedBill[monthKey].company_commission_amount = companyCom;
 
         } else if (monthKey < currentMonthKey) {
           // For months before the current month, update to the full new amount
-          updatedBill[monthKey].driver_commission_amount = driverCommission;
-          updatedBill[monthKey].company_commission_amount = companyCommission;
+          updatedBill[monthKey].driver_commission_amount = driverCom;
+          updatedBill[monthKey].company_commission_amount = companyCom;
         } else {
           // For the current month and future months, apply new rates
-          updatedBill[monthKey].driver_commission_amount = driverCommission;
-          updatedBill[monthKey].company_commission_amount = companyCommission;
+          updatedBill[monthKey].driver_commission_amount = driverCom;
+          updatedBill[monthKey].company_commission_amount = companyCom;
         }
       });
 
       // Update the student document with all fee values
       batch.update(riderRef, { 
-        monthly_sub: Number(totalSubAmount.toString().replace(/,/g, "")),
-        company_commission: Number(companyCommission.toString().replace(/,/g, "")),
-        driver_commission: Number(driverCommission.toString().replace(/,/g, "")),
+        monthly_sub: totalAmount,
+        company_commission: companyCom,
+        driver_commission: driverCom,
         bill: updatedBill,
       });
 
@@ -236,9 +241,9 @@ const riders = () => {
       // Update the local state
       setSelectedRider((prev) => ({
         ...prev,
-        monthly_sub: totalSubAmount,
-        company_commission: companyCommission,
-        driver_commission: driverCommission
+        monthly_sub: totalAmount,
+        company_commission: companyCom,
+        driver_commission: driverCom
       }))
 
       setTotalSubAmount(0)
